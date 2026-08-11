@@ -1,0 +1,25 @@
+# Obsidian 로컬 상태 — 공유 불필요
+**/.obsidian/workspace.json
+**/.obsidian/workspace-mobile.json
+
+# 그래프 뷰 상태. scale(줌 레벨)이 열고 확대할 때마다 바뀌어 매번 변경점으로 잡힌다.
+**/.obsidian/graph.json
+
+# vault는 저장소 루트 하나뿐이다. 하위 디렉토리를 vault로 열어도 커밋되지 않게 막는다.
+# [[파일명]] 링크가 루트 vault 기준으로 resolve되는 것이 이 위키의 전제다.
+/wiki/.obsidian/
+/raw/.obsidian/
+/graphify-out/.obsidian/
+
+# graphify 로컬 비용 집계 — 머신마다 다르다
+/graphify-out/cost.json
+
+# OS
+.DS_Store
+
+# Python 바이트코드 캐시 — 인터프리터 버전마다 달라져 공유 가치가 없다
+__pycache__/
+*.pyc
+
+# pytest 실행 캐시 — 머신 로컬 상태다
+.pytest_cache/

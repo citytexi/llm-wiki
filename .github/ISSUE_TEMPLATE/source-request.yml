@@ -1,0 +1,25 @@
+name: 소스 수집 요청
+description: raw/ 에 넣고 위키에 반영할 원본을 요청한다
+title: "[소스] "
+labels: [source-request]
+body:
+  - type: input
+    id: url
+    attributes:
+      label: 원본 URL·출처
+    validations:
+      required: true
+  - type: input
+    id: domain
+    attributes:
+      label: 대상 도메인
+      description: "wiki/domains/<도메인> 의 도메인 이름. 정해지지 않았으면 inbox."
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: 필요한 이유
+      description: 이 원본이 위키의 어떤 질문에 답하는지.
+    validations:
+      required: true

@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '이 저장소는 LLM이 운영하는 멀티 도메인 위키다. wiki/ 또는 raw/를 건드리는 작업을 시작하기 전에 wiki/CLAUDE.md를 읽고 wiki/script/route.py를 실행한다. 데이터 계약은 wiki/conventions.md가 정본이다.'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 wiki/script/lint.py || true"
+          }
+        ]
+      }
+    ]
+  }
+}
