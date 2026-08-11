@@ -34,7 +34,7 @@ def test_unclear_is_a_stop_not_a_document_list():
 
 
 def test_query_reference_is_empty_by_design():
-    # 스펙 4.2: 도메인 전체 sources를 기본 reference로 올리면
+    # 도메인 전체 sources를 기본 reference로 올리면
     # 4.3의 실패 조건을 기본값이 스스로 만족한다.
     assert load()["intents"]["query"]["reference"] == []
 
@@ -59,7 +59,7 @@ def test_expansion_constants_match_spec():
 def test_research_routes_to_conventions():
     """research는 raw/에 쓰는 유일한 워크플로우다 — 그 규칙은 conventions.md에 있다.
 
-    스펙 4.2 목록에는 없는 의도적 이탈이다(스펙 4.2의 '이탈(2단계)' 참조).
+    라우팅 맵 기본형에는 없는 의도적 이탈이다.
     """
     assert "wiki/conventions.md" in load()["intents"]["research"]["required"]
 

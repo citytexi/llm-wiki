@@ -4,10 +4,12 @@
 사용: python3 wiki/script/route.py --intent <의도> [--domain <도메인>] [--seed <경로> ...]
 종료 코드: 0 정상 / 2 저장소 루트 아님 / 3 unclear(정지) /
           4 라우팅 입력이 잘못됨 — 알 수 없는 의도·도메인, 수집된 페이지가 아닌 --seed,
-            또는 routing.json이 실재하지 않는 경로나 불완전한 expansion 블록을 담음
+            routing.json이 실재하지 않는 경로나 불완전한 expansion 블록을 담음,
+            또는 routing.json 자체가 없거나 JSON으로 파싱되지 않음.
+            --seed 해석 실패는 intent가 unclear(3)여도 4로 끝난다 — 정지보다 우선한다.
 
 자연어 분류는 하지 않는다. LLM이 의도와 도메인을 판정해 인자로 넘기고, 이 스크립트는
-결정적인 조회와 확장만 한다(스펙 4.1). 분류를 여기 넣으면 결정적이지 않은 결과가 나온다.
+결정적인 조회와 확장만 한다. 분류를 여기 넣으면 결정적이지 않은 결과가 나온다.
 """
 from __future__ import annotations
 
@@ -65,11 +67,13 @@ def _validate_expansion(routing: dict) -> list[Finding]:
                            f"{', '.join(EXPANSION_WEIGHTS)} 가 필요하다"))
     else:
         for name in EXPANSION_WEIGHTS:
-            if not isinstance(weights.get(name), (int, float)):
+            val = weights.get(name)
+            if isinstance(val, bool) or not isinstance(val, (int, float)):
                 out.append(Finding("violation", "라우팅경로", ROUTING_REL,
                                    f"expansion.weights.{name} 가 없거나 수가 아니다"))
     for key in ("min_score", "top_k"):
-        if not isinstance(exp.get(key), (int, float)):
+        val = exp.get(key)
+        if isinstance(val, bool) or not isinstance(val, (int, float)):
             out.append(Finding("violation", "라우팅경로", ROUTING_REL,
                                f"expansion.{key} 가 없거나 수가 아니다"))
     return out
@@ -137,7 +141,7 @@ def lookup(repo_root: pathlib.Path, intent: str, domain: str | None,
     if len(required) > 7:
         notes.append(
             f"required {len(required)}개 — 7개 경고선을 넘었다. 라우팅이 과한지 검토하고 "
-            f"wiki/synthesis/routing-misses.md에 기록한다 (스펙 4.5)")
+            f"wiki/synthesis/routing-misses.md에 기록한다")
     return Route(intent=intent, domain=domain, required=required,
                  reference=reference, notes=notes)
 
@@ -191,7 +195,7 @@ def _source_overlap(seed: str, cand: str, srcs: dict[str, set[str]],
     `sources[]`는 디렉토리마다 뜻이 다르다(conventions.md §6). `sources/` 페이지는
     raw 원본 파일명을, `concepts/`·`entities/` 페이지는 `src-` 페이지 stem을 담는다.
     두 집합을 그대로 교차하면 서로 다른 이름공간이라 영영 겹치지 않는다 — ingest가
-    `sources/src-X.md`를 seed로 쓰는 경우(스펙 4.4)에 가중치 4가 통째로 죽는다.
+    `sources/src-X.md`를 seed로 쓰는 경우에 가중치 4가 통째로 죽는다.
     그래서 "한쪽의 sources[]가 상대 페이지의 stem을 담고 있다"를 함께 본다. 이 절은
     대칭이라 소스 페이지에서 seed해도, 개념 페이지에서 seed해도 같은 판정이 나온다.
 
@@ -205,11 +209,15 @@ def _source_overlap(seed: str, cand: str, srcs: dict[str, set[str]],
 
 
 def score_candidates(pages, seeds: list[str], weights: dict) -> dict[str, float]:
-    """seed 각각에 대한 점수를 합산한다. 1홉만 본다."""
+    """seed 각각에 대한 점수를 합산한다. 1홉만 본다.
+
+    seeds는 이미 resolve_seeds()로 해석된 저장소 상대 경로여야 한다 — 이 함수는
+    재해석하지 않는다. 호출자(expand())가 한 번 해석한 결과를 그대로 넘긴다;
+    여기서 다시 부르면 같은 seed를 매 확장마다 두 번 해석하는 낭비가 된다.
+    """
     adj, srcs = build_graph(pages)
     types = {pg.rel: pg.parent_name for pg in pages}
     stems = {pg.rel: pg.stem for pg in pages}
-    seeds = resolve_seeds(pages, seeds)
     seedset = set(seeds)
     scores: dict[str, float] = {}
     for seed in seeds:
@@ -245,7 +253,7 @@ def expand(repo_root: pathlib.Path, route: Route, seeds: list[str],
     notes = list(route.notes)
 
     if not seeds:
-        notes.append("seed가 없어 출처 중복 확장을 건너뛰었다 (스펙 4.4)")
+        notes.append("seed가 없어 출처 중복 확장을 건너뛰었다")
         return Route(route.intent, route.domain, route.required, route.reference,
                      notes, route.stop, route.stop_message)
 
@@ -305,7 +313,13 @@ def main(argv: list[str] | None = None) -> int:
               f"wiki/conventions.md 가 없다.", file=sys.stderr)
         return 2
 
-    routing = load_routing(repo_root)
+    try:
+        routing = load_routing(repo_root)
+    except (OSError, json.JSONDecodeError) as e:
+        print(f"routing.json을 읽을 수 없다 ({ROUTING_REL}): {e}\n"
+              f"경로가 실재하는지, JSON 문법이 온전한지 확인한다.", file=sys.stderr)
+        return 4
+
     bad = validate_routing(repo_root, routing)
     if bad:
         for f in bad:
@@ -316,7 +330,16 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         route = lookup(repo_root, args.intent, args.domain, routing)
-        if not route.stop:
+        if route.stop:
+            if args.seed:
+                # stop 경로에서는 expand()가 아예 돌지 않는다 — 여기서 미리
+                # 해석하지 않으면 잘못된 seed가 침묵 속에 3으로 끝난다(R3).
+                # stop이 아닌 경로는 아래에서 expand()가 이미 한 번 해석하므로
+                # 여기서 또 부르면 R4가 없앤 중복이 main·expand 사이에서
+                # 되살아난다 — 그래서 이 분기는 stop일 때만 탄다.
+                pages = wikilib.load_pages(repo_root)
+                resolve_seeds(pages, args.seed)
+        else:
             route = expand(repo_root, route, args.seed, routing)
     except RoutingError as e:
         print(str(e), file=sys.stderr)

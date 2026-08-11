@@ -117,3 +117,78 @@ def test_main_json_output(repo, monkeypatch, capsys):
     assert d["intent"] == "query"
     assert d["required"] == ["wiki/synthesis/open-questions.md"]
     assert d["stop"] is False
+
+
+# ── R1: 깨진 routing.json은 트레이스백이 아니라 exit 4다 ─────────────────────
+
+def test_main_exits_4_on_broken_json(repo, monkeypatch, capsys):
+    (repo / "wiki" / "routing.json").write_text("{이것은 json이 아니다", encoding="utf-8")
+    monkeypatch.chdir(repo)
+    code = route.main(["--intent", "query"])
+    err = capsys.readouterr().err
+    assert code == 4
+    assert err.strip()  # 트레이스백이 아니라 사람이 읽을 메시지
+
+
+def test_main_exits_4_on_missing_routing_file(repo, monkeypatch, capsys):
+    (repo / "wiki" / "routing.json").unlink()
+    monkeypatch.chdir(repo)
+    code = route.main(["--intent", "query"])
+    err = capsys.readouterr().err
+    assert code == 4
+    assert err.strip()
+
+
+# ── R2: min_score: true는 bool이라 int 서브클래스 검사를 통과해선 안 된다 ────
+
+def test_validate_expansion_rejects_bool_min_score(repo):
+    d = json.loads((repo / "wiki" / "routing.json").read_text(encoding="utf-8"))
+    d["expansion"]["min_score"] = True
+    found = route._validate_expansion(d)
+    assert found and all(f.code == "라우팅경로" for f in found)
+
+
+def test_main_exits_4_on_bool_min_score(repo, monkeypatch, capsys):
+    d = json.loads((repo / "wiki" / "routing.json").read_text(encoding="utf-8"))
+    d["expansion"]["min_score"] = True
+    (repo / "wiki" / "routing.json").write_text(json.dumps(d, ensure_ascii=False),
+                                                encoding="utf-8")
+    monkeypatch.chdir(repo)
+    assert route.main(["--intent", "query", "--domain", "a"]) == 4
+
+
+# ── R3: unclear도 --seed를 검증한다. 정지보다 잘못된 seed가 우선이다 ────────
+
+def test_main_unclear_with_bad_seed_exits_4_not_3(repo, monkeypatch, capsys):
+    monkeypatch.chdir(repo)
+    code = route.main(["--intent", "unclear", "--seed", "없는페이지"])
+    err = capsys.readouterr().err
+    assert code == 4
+    assert "없는페이지" in err
+
+
+def test_main_normal_intent_with_bad_seed_exits_4(repo, monkeypatch, capsys):
+    monkeypatch.chdir(repo)
+    code = route.main(["--intent", "query", "--domain", "a", "--seed", "없는페이지"])
+    err = capsys.readouterr().err
+    assert code == 4
+    assert "없는페이지" in err
+
+
+def test_main_resolves_valid_seed_only_once_on_normal_path(repo, monkeypatch, capsys):
+    """정상 intent + 유효한 seed에서 resolve_seeds가 main·expand 사이에서 또
+    중복되면 안 된다 — R4가 없앤 중복을 R3가 다른 경로로 되살리지 않는지 고정한다.
+    """
+    calls = []
+    orig = route.resolve_seeds
+
+    def spy(pages, seeds):
+        calls.append(list(seeds))
+        return orig(pages, seeds)
+
+    monkeypatch.setattr(route, "resolve_seeds", spy)
+    monkeypatch.chdir(repo)
+    code = route.main(["--intent", "query", "--domain", "a",
+                       "--seed", "wiki/domains/a/a-purpose.md"])
+    assert code == 0
+    assert len(calls) == 1

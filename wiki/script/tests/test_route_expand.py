@@ -233,7 +233,7 @@ def test_same_type_still_breaks_ties_among_related_pages(tiebreak_repo):
 
 @pytest.fixture
 def ingest_repo(make_repo):
-    """스펙 4.4가 이름하는 ingest seed — 대상 소스의 요약 페이지."""
+    """ingest seed — 대상 소스의 요약 페이지."""
     routing = {
         "version": 1,
         "domains": {"a": {"paths": ["wiki/domains/a/**"], "required": [], "reference": []}},
@@ -335,9 +335,10 @@ def test_main_exits_4_on_malformed_expansion(repo, monkeypatch, capsys):
 # ── F4: 해석되지 않는 seed는 침묵이 아니라 오류다 ────────────────────────────
 
 def test_unknown_seed_raises(repo):
-    pages = wikilib.load_pages(repo)
+    """해석은 expand()가 맡는다 — score_candidates는 이미 해석된 경로만 받는다(R4)."""
+    r = route.lookup(repo, "query", "a")
     with pytest.raises(route.RoutingError) as e:
-        route.score_candidates(pages, ["그래프노드이름"], WEIGHTS)
+        route.expand(repo, r, seeds=["그래프노드이름"])
     assert "그래프노드이름" in str(e.value)
 
 
@@ -355,3 +356,39 @@ def test_unknown_seed_does_not_claim_expansion_ran(repo, monkeypatch, capsys):
     route.main(["--intent", "query", "--domain", "a", "--seed", "오타"])
     out = capsys.readouterr()
     assert "확장 후보 없음" not in out.out
+
+
+# ── R4: resolve_seeds는 expand당 한 번만 — score_candidates는 재해석하지 않는다 ──
+
+def test_expand_resolves_seeds_only_once(repo, monkeypatch):
+    """expand()가 이미 해석한 결과를 score_candidates에 넘긴다 — 두 번 부르지 않는다.
+
+    되돌리면(score_candidates가 다시 resolve_seeds를 부르면) 호출이 2회로 늘어
+    이 테스트가 실패한다.
+    """
+    calls = []
+    orig = route.resolve_seeds
+
+    def spy(pages, seeds):
+        calls.append(list(seeds))
+        return orig(pages, seeds)
+
+    monkeypatch.setattr(route, "resolve_seeds", spy)
+    r = route.lookup(repo, "query", "a")
+    route.expand(repo, r, seeds=["wiki/domains/a/concepts/씨앗.md"])
+    assert len(calls) == 1
+
+
+def test_score_candidates_does_not_resolve_seeds_itself(repo, monkeypatch):
+    """score_candidates의 시그니처는 이미 해석된 경로를 받는다 — 내부에서 재해석하지 않는다."""
+    pages = wikilib.load_pages(repo)
+    calls = []
+    orig = route.resolve_seeds
+
+    def spy(p, s):
+        calls.append(list(s))
+        return orig(p, s)
+
+    monkeypatch.setattr(route, "resolve_seeds", spy)
+    route.score_candidates(pages, ["wiki/domains/a/concepts/씨앗.md"], WEIGHTS)
+    assert calls == []

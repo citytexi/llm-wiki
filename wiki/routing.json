@@ -20,7 +20,7 @@
     "research": {
       "required": ["wiki/conventions.md", "wiki/purpose.md", "wiki/overview.md",
                    "wiki/synthesis/open-questions.md"],
-      "reference": []
+      "reference": ["wiki/references/research.md"]
     },
     "delete-source": {
       "required": ["wiki/conventions.md", "wiki/references/cascade-delete.md"],

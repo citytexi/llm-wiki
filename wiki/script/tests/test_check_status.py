@@ -1,4 +1,5 @@
 import check_status
+import wikilib
 
 
 def src(status, superseded_by=None, supersedes=None, scope=None):
@@ -220,6 +221,29 @@ def test_empty_superseded_by_does_not_satisfy_requirement(make_repo):
     assert [f.level for f in found] == ["violation"]
     assert "superseded_by 없음" in found[0].message
     assert check_status.check_refs(sources) == []
+
+
+def test_main_loads_pages_only_once(make_repo, monkeypatch):
+    """main()이 collect_sources와 run_all에 각각 load_pages를 시키면 안 된다(R5).
+
+    되돌리면(main이 pages를 한 번만 읽어 두 함수에 넘기지 않으면) load_pages 호출이
+    2회로 늘어 이 테스트가 실패한다.
+    """
+    root = make_repo({
+        "wiki/conventions.md": "계약",
+        "wiki/index.md": "---\ntags: [i]\nupdated: 2026-08-10\n---\n",
+    })
+    monkeypatch.chdir(root)
+    calls = []
+    orig = wikilib.load_pages
+
+    def spy(repo_root):
+        calls.append(repo_root)
+        return orig(repo_root)
+
+    monkeypatch.setattr(wikilib, "load_pages", spy)
+    assert check_status.main() == 0
+    assert len(calls) == 1
 
 
 def test_block_form_status_is_value_error_not_crash(make_repo):

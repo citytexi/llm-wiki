@@ -179,8 +179,9 @@ def main() -> int:
     if not repo_root_ok(repo_root):
         print(wrong_root_message(repo_root), file=sys.stderr)
         return 2
-    sources = collect_sources(repo_root)
-    findings = run_all(repo_root)
+    pages = wikilib.load_pages(repo_root)
+    sources = collect_sources(repo_root, pages)
+    findings = run_all(repo_root, pages)
     violations = [f for f in findings if f.level == "violation"]
     warnings = [f for f in findings if f.level == "warning"]
     print(f"소스 {len(sources)}건 검사")

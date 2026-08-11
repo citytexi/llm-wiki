@@ -14,7 +14,7 @@ LINK = re.compile(r"\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]")
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 FENCE = re.compile(r"```.*?```", re.S)
 
-# 링크 대상이 아니라 수집도 하지 않는 경로 (스펙 3.2)
+# 링크 대상이 아니라 수집도 하지 않는 경로
 UNCOLLECTED_DIRS = ("wiki/templates", "wiki/script", "wiki/references")
 UNCOLLECTED_FILES = (
     "CLAUDE.md",
@@ -26,7 +26,20 @@ UNCOLLECTED_FILES = (
 # vault 스캔에서 제외할 디렉토리.
 # .pytest_cache·.superpowers는 추적되지 않는 작업 부산물이다. 포함하면 lint 결과가
 # 로컬 작업 사본과 새 클론에서 달라진다 — 검사는 커밋된 트리만 봐야 한다.
-SKIP_DIRS = {".git", ".obsidian", "node_modules", ".pytest_cache", ".superpowers"}
+# 점(.)으로 시작하는 디렉토리(.git·.obsidian·.pytest_cache·.superpowers·.claude)는
+# Obsidian이 vault 탐색에서 통째로 숨긴다 — 그 안의 마크다운은 [[이름]] 링크
+# resolve 대상이 될 수 없으므로 파일명 유일성 검사에 낄 필요가 없다. .claude가
+# 이 목록에 있는 것도 같은 이유다(예: .claude/CLAUDE.md, .claude/skills/graphify/
+# SKILL.md — 루트 CLAUDE.md·wiki/CLAUDE.md·wiki/templates/query.md와 이름이
+# 겹쳐도 Obsidian이 애초에 보지 않으므로 충돌이 아니다).
+# 주의: 이 이유는 점(.) 디렉토리에만 적용된다. graphify-out/처럼 점으로
+# 시작하지 않는 디렉토리는 Obsidian이 정상적으로 vault에 포함시키므로 여기
+# 넣으면 안 된다 — 넣으면 그 안의 마크다운(GRAPH_REPORT.md 등)이 이름이
+# 겹쳐도 아무도 잡아내지 못하는 구멍이 생긴다.
+SKIP_DIRS = {
+    ".git", ".obsidian", "node_modules", ".pytest_cache", ".superpowers",
+    ".claude",
+}
 
 # 블록 형식 YAML 리스트 항목: "  - 값"
 BLOCK_ITEM = re.compile(r"^\s*-\s+(.*)$")

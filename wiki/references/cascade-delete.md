@@ -56,7 +56,20 @@
 `python3 wiki/script/ingest_cache.py --prune`을 실행해 `raw/.manifest.json`
 에서 더 이상 존재하지 않는 원본 항목을 뺀다.
 
-## 8. 기록과 검증
+## 8. 미결 항목 인용 정리
+
+삭제된 소스를 인용하던 `wiki/synthesis/open-questions.md` 항목을 찾는다. 그 미결이
+삭제로 무효가 되었으면 `상태`를 갱신하고, 아니면 인용을 고쳐 쓴다.
+
+항목을 고쳤다면 `wiki/script/sync_issues.py`를 돌린다 — 미결 항목이 바뀌었으니 이슈
+투영이 어긋난 상태다. 언제·어떻게 돌리는지는 `.claude/skills/wiki-issue-sync/SKILL.md`를,
+`issue` 필드 규약은 `wiki/conventions.md` §3을 본다.
+
+`issue` 필드는 스크립트가 쓰는 값이다. 손으로 지우면 다음 `sync_issues.py` 실행이 그
+항목을 아직 이슈가 없는 것으로 보고 새 이슈를 하나 더 만들고, 원래 이슈는 참조를 잃어
+`고아이슈` 위반으로 남는다.
+
+## 9. 기록과 검증
 
 `wiki/log.md`에 삭제 내역(무엇을, 왜)을 기록한 뒤 아래 둘 다 종료 코드 0을
 확인한다.
@@ -70,17 +83,24 @@ python3 wiki/script/check_status.py
 6번(판본 체인)이 빠졌을 가능성이 가장 크다. 코드별 대응은
 `wiki/references/lint-rules.md`를 본다.
 
+그 다음 그래프를 1회 다시 만든다 — 시점과 명령은 `wiki/CLAUDE.md`의 "작업 후"
+절이 정본이다. 삭제는 그래프를 반드시 어긋나게 만든다: 없어진 페이지가
+매니페스트에 남아 `그래프stale`이 뜨고, 그 동안 나머지 세 그래프 신호는 판정
+자체가 생략된다 — `research.md`가 Deep Research 입력으로 요구하는
+`그래프고립`·`희소커뮤니티`가 영구히 빈 채로 남는다.
+
 ## 자동 처리 vs 사용자 확인
 
 | 단계 | 처리 |
 |---|---|
-| 1, 2, 4, 5, 7, 8 | 자동 |
+| 1, 2, 4, 5, 7, 8, 9 | 자동 |
 | 3 (공유 페이지의 삭제 여부) | 사용자 확인 필요 |
 | 6 (`partial`이 낀 판본 체인 재연결) | 사용자 확인 필요 |
 
 ## 연관
 
-- `wiki/conventions.md` §2(판본 상태), §10(raw/ 규칙)
+- `wiki/conventions.md` §2(판본 상태), §3(미결 항목), §10(raw/ 규칙)
 - `wiki/script/ingest_cache.py --prune`
 - `wiki/script/lint.py`, `wiki/script/check_status.py`
+- `wiki/script/sync_issues.py`, `.claude/skills/wiki-issue-sync/SKILL.md`
 - `wiki/references/lint-rules.md`

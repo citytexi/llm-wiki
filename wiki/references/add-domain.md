@@ -66,10 +66,22 @@ python3 wiki/script/lint.py
 `lint.py`는 위반 0건을 확인한다 — 구조 파일 3종의 frontmatter 누락이 이
 시점에서 가장 흔한 위반이다.
 
+그 다음 그래프를 1회 다시 만든다 — 시점과 명령은 `wiki/CLAUDE.md`의 "작업 후"
+절이 정본이다. 새 도메인의 구조 파일 3종은 그래프가 본 적 없는 페이지라, 돌리지
+않으면 다음 lint부터 `그래프stale` 하나만 뜨고 나머지 세 그래프 신호는 판정
+자체가 생략된다.
+
+## 참고: 이슈 투영은 도메인 단위가 아니다
+
+새 도메인을 만들어도 GitHub 이슈 투영 설정은 도메인마다 따로 필요하지 않다. 미결
+항목은 `wiki/synthesis/open-questions.md` 전역 파일 하나에서만 관리되며
+(`wiki/conventions.md` §3), 투영은 `wiki/script/sync_issues.py`가 도맡는다.
+
 ## 연관
 
 - `wiki/conventions.md` §4(파일명), §5(디렉토리 배치), §6(frontmatter 필수
-  필드)
+  필드), §3(미결 항목)
 - `wiki/templates/domain-purpose.md`, `domain-index.md`, `domain-overview.md`
 - `wiki/routing.json`
 - `wiki/references/lint-rules.md`
+- `wiki/script/sync_issues.py`
