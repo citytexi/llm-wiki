@@ -1,0 +1,49 @@
+name: 미결 항목
+description: 위키 안에서 상충하거나 아직 판정되지 않은 것을 제기한다
+title: "[미결] "
+labels: [open-question]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        정본은 `wiki/synthesis/open-questions.md` 다.
+        여기 올린 내용은 이후 그 파일로 옮겨지고, 그때부터 이 이슈 본문은
+        파일에서 자동 생성된다.
+  - type: input
+    id: summary
+    attributes:
+      label: 주제 요약
+      description: 한 줄로. 이슈 제목의 `[미결] ` 뒤에 들어갈 내용과 같게 적는다.
+    validations:
+      required: true
+  - type: textarea
+    id: source_a
+    attributes:
+      label: 출처 A
+      description: "형식: [[페이지명]] — 주장 요약"
+    validations:
+      required: true
+  - type: textarea
+    id: source_b
+    attributes:
+      label: 출처 B
+      description: "형식: [[페이지명]] — 상충 주장 요약. 상충 상대가 없으면 비워둔다."
+    validations:
+      required: false
+  - type: dropdown
+    id: action
+    attributes:
+      label: action
+      description: 후속 작업 종류. 값은 wiki/conventions.md §3의 열거형이다.
+      options:
+        - create-page
+        - research
+        - skip
+    validations:
+      required: true
+  - type: textarea
+    id: note
+    attributes:
+      label: 비고
+    validations:
+      required: false

@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "domains": {
+    "inbox": {
+      "paths": ["wiki/domains/inbox/**", "raw/inbox/**"],
+      "required": ["wiki/domains/inbox/inbox-purpose.md",
+                   "wiki/domains/inbox/inbox-index.md"],
+      "reference": ["wiki/domains/inbox/inbox-overview.md"]
+    }
+  },
+  "intents": {
+    "ingest": {
+      "required": ["wiki/conventions.md", "wiki/synthesis/open-questions.md", "wiki/purpose.md"],
+      "reference": ["wiki/references/ingest-checklist.md"]
+    },
+    "query": {
+      "required": ["wiki/synthesis/open-questions.md"],
+      "reference": []
+    },
+    "research": {
+      "required": ["wiki/conventions.md", "wiki/purpose.md", "wiki/overview.md",
+                   "wiki/synthesis/open-questions.md"],
+      "reference": []
+    },
+    "delete-source": {
+      "required": ["wiki/conventions.md", "wiki/references/cascade-delete.md"],
+      "reference": []
+    },
+    "add-domain": {
+      "required": ["wiki/conventions.md", "wiki/references/add-domain.md"],
+      "reference": []
+    },
+    "lint": {
+      "required": ["wiki/conventions.md"],
+      "reference": ["wiki/references/lint-rules.md"]
+    },
+    "schema-change": {
+      "required": ["wiki/conventions.md", "docs/llm-wiki.md"],
+      "reference": []
+    },
+    "unclear": {
+      "action": "stop",
+      "message": "도메인과 의도를 사용자에게 확인한다"
+    }
+  },
+  "expansion": {
+    "weights": {
+      "source_overlap": 4,
+      "direct_link": 3,
+      "shared_neighbor": 1.5,
+      "same_type": 1
+    },
+    "min_score": 4,
+    "top_k": 5,
+    "hops": 1
+  }
+}

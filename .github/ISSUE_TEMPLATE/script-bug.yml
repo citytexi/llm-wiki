@@ -1,0 +1,35 @@
+name: 검사 스크립트 결함
+description: lint.py / check_status.py / sync_issues.py 가 잘못 잡거나 놓친 경우
+title: "[검사] "
+labels: [script-bug]
+body:
+  - type: dropdown
+    id: script
+    attributes:
+      label: 대상 스크립트
+      options:
+        - lint.py
+        - check_status.py
+        - sync_issues.py
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: 재현 명령
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 출력
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 출력
+      render: shell
+    validations:
+      required: true
