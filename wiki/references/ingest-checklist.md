@@ -65,6 +65,9 @@
 - `python3 wiki/script/lint.py`를 실행하고 위반 0건을 확인한다. 위반이
   남아 있으면 ingest가 끝난 것이 아니다. 코드별 대응은
   `wiki/references/lint-rules.md`를 본다.
+- 그래프를 1회 다시 만든다 — 시점과 명령은 `wiki/CLAUDE.md`의 "작업 후" 절이
+  정본이다. 돌리지 않으면 다음 lint부터 `그래프stale` 하나만 뜨고 나머지 세
+  그래프 신호는 판정 자체가 생략된다.
 
 ## 멈출 조건
 

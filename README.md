@@ -142,7 +142,12 @@ docs/
 | `check_status.py` | 판본 체인(`status`/`superseded_by`) 무결성과 카탈로그 투영 대조 |
 | `ingest_cache.py` | `raw/` 원본의 SHA256을 기록해 재처리를 막는다 |
 | `sync_issues.py` | 미결 항목을 GitHub 이슈로 단방향 투영. 기본 dry-run |
+| `graph_signals.py` | 지식 그래프 산출물을 lint 경고로 투영. 그래프가 없으면 조용히 잠든다 |
 | `wikilib.py` | 공용 유틸. 페이지 수집·frontmatter 파싱·링크 추출 |
+
+`graph_signals.py`만 선택 연동이다. `graphify-out/graph.json`이 있을 때만 신호를
+내고, 없으면 아무 경고도 내지 않는다 — 그래프를 만든 적 없는 저장소는 정상 상태다.
+`docs/setup.md`의 "지식 그래프" 절을 참조한다.
 
 ## 처음 고칠 곳
 

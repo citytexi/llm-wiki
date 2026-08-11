@@ -97,6 +97,27 @@ def test_lint_main_does_not_shell_out_to_check_status():
     assert "subprocess" not in src, "check_status는 import해서 직접 부른다"
 
 
+def test_run_all_has_no_graph_signals_without_graph(make_repo):
+    """graphify-out/graph.json이 없는 저장소는 그래프 신호가 하나도 나오지 않는다.
+
+    그래프를 아직 만든 적 없는 저장소는 정상 상태다 — 신호가 없어야 하고,
+    위반 개수도 그래프 연결 전과 그대로여야 한다(그래프 신호는 전부 경고라
+    종료 코드/위반 집계에 영향을 주면 안 된다).
+    """
+    root = make_repo({
+        "wiki/index.md": page(body="[[a-index]]"),
+        "wiki/domains/a/a-index.md": page(body="[[a-purpose]] [[a-overview]] [[src-정책]]"),
+        "wiki/domains/a/a-purpose.md": page(),
+        "wiki/domains/a/a-overview.md": page(),
+        "wiki/domains/a/sources/src-정책.md": page(sources="[정책.md]"),
+        "raw/a/정책.md": "원본",
+    })
+    found = lint.run_all(root)
+    graph_codes = {"그래프stale", "그래프고립", "희소커뮤니티", "브리지"}
+    assert not (graph_codes & {f.code for f in found})
+    assert [f for f in found if f.level == "violation"] == []
+
+
 def test_lint_reports_status_violations_inline(make_repo, monkeypatch, capsys):
     root = make_repo({
         "wiki/conventions.md": "계약",

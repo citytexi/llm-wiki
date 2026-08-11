@@ -143,6 +143,23 @@ def test_all_markdown_skips_scratch_dirs(make_repo):
     assert rels == {"wiki/index.md"}
 
 
+def test_all_markdown_skips_dot_dirs_but_not_graphify_out(make_repo):
+    """.claude는 점(.) 디렉토리라 Obsidian이 vault 탐색에서 통째로 숨긴다 —
+    안의 마크다운(CLAUDE.md·SKILL.md)은 링크 resolve 대상이 될 수 없으므로
+    파일명 유일성 검사에서 빠져야 한다. graphify-out은 점 디렉토리가 아니라
+    Obsidian이 정상적으로 vault에 포함시키므로 GRAPH_REPORT.md는 여전히
+    유일성 검사 대상이어야 한다 — SKIP_DIRS에 넣으면 향후 같은 이름의
+    페이지가 생겨도 아무도 잡아내지 못하는 구멍이 된다."""
+    root = make_repo({
+        "wiki/index.md": page(),
+        ".claude/CLAUDE.md": "도구 설정",
+        ".claude/skills/graphify/SKILL.md": "도구 스킬",
+        "graphify-out/GRAPH_REPORT.md": "그래프 산출물",
+    })
+    rels = {p.relative_to(root).as_posix() for p in wikilib.all_markdown(root)}
+    assert rels == {"wiki/index.md", "graphify-out/GRAPH_REPORT.md"}
+
+
 def test_finding_lives_in_wikilib():
     f = wikilib.Finding("violation", "코드", "wiki/x.md", "메시지")
     assert (f.level, f.code, f.path, f.message) == ("violation", "코드", "wiki/x.md", "메시지")

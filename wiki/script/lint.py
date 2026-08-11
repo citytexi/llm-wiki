@@ -16,7 +16,7 @@ import sys
 import wikilib
 from wikilib import Finding, Page, nfc
 
-# 인바운드 링크가 없어도 정상인 페이지 (스펙 3.2, 3.4)
+# 인바운드 링크가 없어도 정상인 페이지 (conventions.md §7 면제 대상)
 ORPHAN_EXEMPT_PATHS = {
     "wiki/index.md",
     "wiki/log.md",
@@ -279,7 +279,7 @@ def check_manifest(repo_root: pathlib.Path) -> list[Finding]:
     return out
 
 
-# (등급, 정규식). 스펙 9.2 — 자격증명은 위반, 개인 식별 정보는 경고.
+# (등급, 정규식). conventions.md §9 — 자격증명은 위반, 개인 식별 정보는 경고.
 SENSITIVE = {
     "credential": ("violation",
                    r"(?i)(api[_-]?key|secret|password|token)\s*[:=]\s*[\"']?[A-Za-z0-9_\-]{16,}"),
@@ -401,6 +401,12 @@ def run_all(repo_root: pathlib.Path, pages: list[Page] | None = None) -> list[Fi
         pages = wikilib.load_pages(repo_root)
     index = wikilib.build_name_index(pages)
     link_findings, inbound = check_links(pages, index)
+    # 함수 안에서 import한다 — check_status와 같은 관례(main()의 `import
+    # check_status` 참고). graph_signals는 graphify-out/graph.json이라는
+    # 산출물만 읽는 독립 모듈이라 항상 존재하지만, run_all의 다른 검사와
+    # 마찬가지로 모듈 로드를 호출 시점까지 늦춰 두면 이 파일 상단의 import
+    # 목록이 "항상 필요한 것"과 "검사 하나가 쓰는 것"으로 갈리지 않는다.
+    import graph_signals
     return [
         *check_unique_names(repo_root),
         *link_findings,
@@ -413,6 +419,7 @@ def run_all(repo_root: pathlib.Path, pages: list[Page] | None = None) -> list[Fi
         *check_sensitive(pages, repo_root),
         *check_action_enum(repo_root),
         *check_issue_field(repo_root),
+        *graph_signals.check_graph_signals(repo_root, pages),
     ]
 
 
