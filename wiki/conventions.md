@@ -59,9 +59,11 @@
 - 위키 내부 링크는 `[[파일명]]` 형식만 쓴다. 경로 접두사는 금지다.
 - 파일명은 저장소 전역(vault 전역)에서 유일해야 한다. Obsidian은 이름이 겹치면 링크를
   깨뜨리지 않고 아무 파일로나 해석한다. 조용히 틀리는 것이 깨지는 것보다 나쁘다.
-  - 예외: 런타임이 이름을 정하는 진입 파일(루트 `CLAUDE.md`·`AGENTS.md`,
-    `wiki/CLAUDE.md`, `wiki/conventions.md`, `wiki/synthesis/routing-misses.md`)은
-    **서로 간에만** 같은 stem을 허용한다(루트 `CLAUDE.md`와 `wiki/CLAUDE.md`).
+  - 예외: 런타임이 이름을 정하는 진입 파일(루트 `CLAUDE.md`·`AGENTS.md`·`README.md`,
+    `script/README.md`, `wiki/CLAUDE.md`, `wiki/conventions.md`,
+    `wiki/synthesis/routing-misses.md`)은 **서로 간에만** 같은 stem을 허용한다
+    (루트 `CLAUDE.md`와 `wiki/CLAUDE.md`, 루트 `README.md`와 `script/README.md`).
+    `README.md`는 GitHub이 디렉토리마다 진입 문서로 렌더하는 이름이라 바꿀 수 없다.
     이름을 런타임이 정해 바꿀 수 없기 때문이며, 이들은 수집 대상이 아니라 경로로만
     참조되므로 둘만 겹치는 한 해석이 모호해지지 않는다.
     일반 콘텐츠 페이지가 이 stem 중 하나를 가져가면 그대로 위반이다. 그 페이지는

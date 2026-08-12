@@ -1,0 +1,9 @@
+{
+  "_comment": [
+    "벤더링할 스킬 소스 repo 목록. 기본값은 비어 있다 — 쓸 사람이 채운다.",
+    "예: { \"name\": \"my-skills\", \"url\": \"https://github.com/example/skills.git\" }",
+    "name은 .claude/skills-vendor/ 아래 baseline·manifest 키와 라이선스 파일명에 쓰인다.",
+    "추가는 여기 넣고 script/vendor.py --update, 제거는 여기서 빼고 --full."
+  ],
+  "repos": []
+}

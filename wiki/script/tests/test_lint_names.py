@@ -54,6 +54,20 @@ def test_runtime_bridge_files_may_share_a_stem(make_repo):
     assert lint.check_unique_names(root) == []
 
 
+def test_readme_pair_may_share_a_stem(make_repo):
+    """루트 README와 script/README는 GitHub이 이름을 정하는 진입 문서다."""
+    root = make_repo({"README.md": "저장소 소개", "script/README.md": "툴링 홈"})
+    assert lint.check_unique_names(root) == []
+
+
+def test_readme_stem_taken_by_a_content_page_collides(make_repo):
+    root = make_repo({
+        "README.md": "저장소 소개",
+        "wiki/domains/a/concepts/README.md": page(sources="[]"),
+    })
+    assert [f.code for f in lint.check_unique_names(root)] == ["파일명중복"]
+
+
 def test_template_still_collides_with_a_real_page(make_repo):
     root = make_repo({
         "wiki/templates/concept.md": "템플릿",
