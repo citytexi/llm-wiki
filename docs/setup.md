@@ -28,8 +28,12 @@ python 3.9.6에서 동작을 확인했다. 그보다 낮은 버전은 확인하�
 
 ```
 pip install pytest
-python3 -m pytest wiki/script/tests -q
+python3 -m pytest -q
 ```
+
+테스트 디렉토리가 둘이다. `wiki/script/tests`는 위키 데이터 툴링, `script/tests`는 저장소
+운영 툴링(스킬 벤더링·검색)을 본다. 루트 `pytest.ini`가 둘을 `testpaths`로 잡고 각
+스크립트 디렉토리를 `pythonpath`에 넣으므로, 인자 없이 `pytest`만 쳐도 둘 다 돈다.
 
 테스트는 `tmp_path`에 가짜 저장소를 만들어 돈다. 실제 저장소나 네트워크를 건드리지
 않는다 (`wiki/script/tests/conftest.py`의 `make_repo` 픽스처).
@@ -110,10 +114,15 @@ python3 wiki/script/sync_issues.py --apply   # 반영
 
 ### Codex / 그 외
 
-`AGENTS.md`가 루트에 있다. 내용은 `CLAUDE.md`와 같다 — 둘 다 `wiki/CLAUDE.md`를 먼저
-읽으라고 넘기는 얇은 브리지다.
+`AGENTS.md`는 **`CLAUDE.md`를 가리키는 심볼릭 링크다.** 진입 문서를 한 곳에서만
+관리하려는 것이며, `CLAUDE.md`를 고치면 둘 다 바뀐다.
 
-다른 에이전트를 쓴다면 그 런타임이 읽는 파일 이름으로 같은 내용을 하나 더 두면 된다.
+Windows에서 클론한다면 확인이 필요하다. git이 `core.symlinks=false`로 동작하면
+`AGENTS.md`가 `CLAUDE.md`라는 다섯 글자를 담은 평범한 텍스트 파일로 체크아웃된다.
+그 경우 심볼릭 링크를 켜거나(`git config core.symlinks true` 후 재체크아웃),
+`AGENTS.md`를 지우고 `CLAUDE.md`의 사본으로 만든다.
+
+다른 에이전트를 쓴다면 그 런타임이 읽는 파일 이름으로 링크나 사본을 하나 더 두면 된다.
 `conventions.md` §4가 이 진입 파일들끼리는 stem이 겹쳐도 되도록 예외를 두고 있다.
 
 ## 6. 공개 범위 정하기
@@ -173,7 +182,38 @@ public으로 운영한다면 아래 두 줄을 위반으로 올린다. 문서(§
 생성물을 커밋할지는 각자 정한다. `.gitignore`는 `graphify-out/cost.json`(머신마다 다름)과
 `graphify-out/.obsidian/`만 막아 둔다.
 
-## 8. 첫 실행 점검
+## 8. 스킬 벤더링 (선택)
+
+에이전트 스킬을 외부 repo에서 가져와 `.claude/skills/` 아래에 두고 싶을 때 쓴다. 위키와
+무관한 저장소 운영 도구이므로 안 써도 된다.
+
+`.claude/skills-vendor/sources.json`의 기본값은 **빈 배열**이다. 쓸 repo를 직접 넣는다.
+
+```json
+{
+  "repos": [
+    { "name": "my-skills", "url": "https://github.com/example/skills.git" }
+  ]
+}
+```
+
+```
+python3 script/vendor.py --full --dry-run   # 무엇이 들어올지 먼저 본다
+python3 script/vendor.py --full             # 초기 설치
+python3 script/vendor.py --update           # 이후 baseline SHA 대비 delta만
+python3 script/search.py "<주제>" --top 5    # 설치된 스킬 검색
+```
+
+`--full`은 이전 manifest에 있던 스킬을 먼저 지우고 시작하므로 `sources.json`에서 뺀 repo의
+산출물까지 정리된다. `--update`는 `sources.json`에 있는 repo만 보므로 제거에는 쓸 수 없다.
+자세한 절차는 `update-injected-skills` 스킬에 있다.
+
+**벤더링은 남의 코드를 이 저장소에 복사해 넣는 것이다.** 소스 repo의 라이선스가 재배포를
+허용하는지 확인한다. `vendor.py`가 각 repo의 라이선스 파일을
+`.claude/skills-vendor/licenses/`로 받아 두므로 지우지 않는다. 저장소를 public으로 운영할
+계획이면 특히 그렇다.
+
+## 9. 첫 실행 점검
 
 ```
 python3 wiki/script/lint.py            # 종료 코드 0

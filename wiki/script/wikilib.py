@@ -14,11 +14,13 @@ LINK = re.compile(r"\[\[([^\]|#]+)(?:[|#][^\]]*)?\]\]")
 COMMENT = re.compile(r"<!--.*?-->", re.S)
 FENCE = re.compile(r"```.*?```", re.S)
 
-# 링크 대상이 아니라 수집도 하지 않는 경로
+# 링크 대상이 아니라 수집도 하지 않는 경로 (스펙 3.2)
 UNCOLLECTED_DIRS = ("wiki/templates", "wiki/script", "wiki/references")
 UNCOLLECTED_FILES = (
     "CLAUDE.md",
     "AGENTS.md",
+    "README.md",
+    "script/README.md",
     "wiki/CLAUDE.md",
     "wiki/conventions.md",
     "wiki/synthesis/routing-misses.md",
